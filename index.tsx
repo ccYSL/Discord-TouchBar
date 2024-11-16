@@ -24,7 +24,7 @@ const settings = definePluginSettings({
     },
     includedGuilds: {
         type: OptionType.STRING,
-        description: "Choose guilds by adding the Server ID followed by a comma. ex: 1629,1400,999 (If left empty & guilds are enabled will use first 5 guilds.",
+        description: "Choose guilds by adding the Server ID followed by a comma. ex: 1629,1400,999 (If left empty & guilds are enabled will use first 10 guilds.",
     }
 });
 
@@ -38,13 +38,15 @@ export default definePlugin({
     async start() {
         console.log("started");
         const guilds = Object.entries(GuildStore.getGuilds()).map(i => (i[1]));
-        const privChannels = ChannelStore.getSortedPrivateChannels().slice(0, 5);
+        const users = Object.entries(ChannelStore.getSortedPrivateChannels().filter(channel => channel.ownerId === undefined).slice(0, 7)).map(i => (i[1]));
+        console.log("users: ", users);
         ["CALL_CREATE", "CALL_DELETE"].forEach(action => {
+            // @ts-ignore
             FluxDispatcher.subscribe(action, () => {
-                Native.initTouchBar(guilds);
+                Native.initTouchBar(users, guilds);
             });
         });
-        await Native.initTouchBar(guilds);
+        await Native.initTouchBar(users, guilds);
     },
 
     stop() {
